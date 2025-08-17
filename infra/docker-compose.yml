@@ -1,0 +1,154 @@
+version: "3.8"
+
+services:
+  # Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: unibazzar-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - unibazzar-network
+
+  # Primary Database
+  postgres:
+    image: postgres:15
+    container_name: unibazzar-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: unibazzar
+      POSTGRES_USER: unibazzar
+      POSTGRES_PASSWORD: unibazzar123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init:/docker-entrypoint-initdb.d
+    networks:
+      - unibazzar-network
+
+  # DynamoDB Local
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    container_name: unibazzar-dynamodb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    networks:
+      - unibazzar-network
+
+  # Cache
+  redis:
+    image: redis:7-alpine
+    container_name: unibazzar-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - unibazzar-network
+
+  # Observability Stack
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: unibazzar-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    networks:
+      - unibazzar-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: unibazzar-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    networks:
+      - unibazzar-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: unibazzar-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - unibazzar-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: unibazzar-otel-collector
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "8889:8889" # Prometheus metrics endpoint
+    volumes:
+      - ./otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - unibazzar-network
+
+  # Analytics Database (Optional)
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: unibazzar-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: analytics
+      CLICKHOUSE_USER: analytics
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+      CLICKHOUSE_PASSWORD: analytics123
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - unibazzar-network
+
+  # Vector Database for AI (using Qdrant as example)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: unibazzar-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - unibazzar-network
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  clickhouse_data:
+  qdrant_data:
+
+networks:
+  unibazzar-network:
+    driver: bridge
