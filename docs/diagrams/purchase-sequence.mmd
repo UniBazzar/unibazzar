@@ -1,0 +1,92 @@
+%% Purchase flow sequence (Order -> Reserve Stock -> Payment -> Confirm)
+sequenceDiagram
+  autonumber
+  participant U as 🛒 User (Mobile App)
+  participant GW as 🚪 API Gateway
+  participant O as 📦 Order Service
+  participant L as 📋 Listing Service
+  participant P as 💳 Payment Service
+  participant I as 📨 RabbitMQ Events
+  participant N as 📢 Notification Service
+  participant CHAPA as 💰 Chapa Payment Gateway
+  participant DB as 🗄️ Database Layer
+
+  Note over U,DB: 🎯 Complete Purchase Flow with Saga Pattern & Event Choreography
+  
+  U->>+GW: 🛒 POST /orders<br/>{listing_id, qty, payment_method}
+  GW->>+O: 📋 CreateOrderCommand
+  O->>DB: 💾 Insert order (PENDING) + outbox event
+  O->>-GW: 🎯 Order created (ID: ORD-123)
+  GW->>-U: ✅ Order initiated, proceed to payment
+  
+  Note over O,I: 🔄 Asynchronous Event Choreography Begins
+  O->>+I: 📨 publish order.created
+  
+  par Stock Reservation Flow
+    I-->>+L: 📋 order.created → reserve_stock
+    L->>L: 🔍 Validate stock availability
+    alt ✅ Stock Available
+      L->>DB: 🔒 Reserve stock (atomic decrement)
+      L->>I: 📨 publish listing.stock_reserved
+      Note right of L: Stock reserved for 15 minutes
+    else ❌ Out of Stock
+      L->>I: 📨 publish order.rejected<br/>{reason: "out_of_stock"}
+      I-->>O: 🚫 order.rejected
+      O->>DB: 💾 Mark order CANCELLED
+      O->>N: 📢 notify_user_order_failed
+    end
+    deactivate L
+    
+  and Payment Initialization
+    I-->>+P: 💳 order.created → init_payment
+    P->>P: 🏗️ Create payment session
+    P->>+CHAPA: 💰 POST /api/v1/payment/initialize<br/>{amount, return_url, webhook_url}
+    CHAPA-->>-P: 🎯 Payment session created<br/>{checkout_url, reference}
+    P->>DB: 💾 Store payment record (PENDING)
+    P->>I: 📨 publish payment.initialized<br/>{checkout_url}
+    deactivate P
+  end
+  
+  I-->>U: 📱 Push notification: "Complete your payment"
+  
+  Note over U,CHAPA: 🔄 User Payment Flow (External)
+  U->>+CHAPA: 🌐 Navigate to checkout_url
+  CHAPA->>CHAPA: 💳 User completes payment<br/>(card/mobile money/bank)
+  CHAPA-->>-U: ✅ Payment successful
+  
+  Note over P,CHAPA: 🎣 Webhook Processing (Async)
+  CHAPA->>+P: 🎯 POST /webhooks/chapa<br/>payment.succeeded event
+  P->>P: ✅ Verify webhook signature
+  P->>DB: 💾 Update payment (COMPLETED) + outbox
+  P->>I: 📨 publish payment.completed<br/>{order_id, amount, reference}
+  deactivate P
+  
+  Note over O,N: 🎉 Order Completion Flow
+  I-->>+O: 💰 payment.completed
+  O->>DB: 💾 Mark order CONFIRMED<br/>Create transaction record
+  O->>I: 📨 publish order.confirmed
+  deactivate O
+  
+  par Notifications
+    I-->>+N: 📢 order.confirmed → notify_buyer
+    N->>U: 📱 Push: "Order confirmed! Seller will contact you"
+    N->>U: 📧 Email: Order confirmation details
+    deactivate N
+  and Seller Notification  
+    I-->>+N: 📢 order.confirmed → notify_seller
+    N->>U: 📱 Push: "New order received! Contact buyer"
+    deactivate N
+  end
+  
+  Note over U,DB: 🎊 Purchase Complete - Both parties notified
+  
+  rect rgb(255, 245, 245)
+    Note over U,DB: 🚨 Compensation Flow (if payment fails after stock reserved)
+    alt Payment timeout or failure
+      P->>I: 📨 publish payment.failed
+      I-->>L: 🔄 payment.failed → release_stock
+      L->>DB: ↩️ Release reserved stock
+      I-->>O: ❌ payment.failed → cancel_order
+      O->>DB: 💾 Mark order CANCELLED
+    end
+  end
