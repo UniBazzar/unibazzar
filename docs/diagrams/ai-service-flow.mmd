@@ -1,0 +1,99 @@
+%% UniBazzar — AI Service Flow (FastAPI) flow: embeddings, vector DB, recommend endpoint
+%% Author: UniBazzar-Team
+
+sequenceDiagram
+  autonumber
+  participant L as 📋 Listing Service
+  participant I as 📨 RabbitMQ Events
+  participant AI as 🤖 AI Service (FastAPI)
+  participant ML as 🧠 ML Models
+  participant VDB as 🔮 Vector Database
+  participant CACHE as 🚀 Redis Cache
+  participant ES as 🔍 Elasticsearch
+  participant API as 🌐 API Client
+
+  Note over L,API: 🎯 AI Service Complete Flow: Ingestion → Processing → Serving
+
+  rect rgba(0, 0, 0)
+    Note over L,VDB: 📝 Content Ingestion & Processing
+    L->>+I: 📨 publish listing.created<br/>{id, title, description, category, images}
+    I-->>+AI: 🎯 listing.created event received
+    
+    AI->>+ML: 🔤 Generate text embeddings<br/>using sentence-transformers
+    ML->>ML: 🧠 Process: title + description<br/>Model: all-MiniLM-L6-v2
+    ML-->>-AI: ✅ Embedding vector [384 dimensions]
+    
+    AI->>+ML: 🛡️ Content moderation check<br/>Text classification for safety
+    ML->>ML: 🔍 Analyze content for:<br/>• Inappropriate language<br/>• Spam patterns<br/>• Policy violations
+    ML-->>-AI: ✅ Moderation result: {approved: true, confidence: 0.95}
+    
+    alt ✅ Content Approved
+      AI->>+VDB: 💾 Upsert vector<br/>collection: listings<br/>id: {listing_id}<br/>vector: [0.1, -0.3, ...]<br/>metadata: {category, campus, price}
+      VDB-->>-AI: ✅ Vector stored successfully
+      
+      AI->>+CACHE: 🚀 Cache embedding metadata<br/>SET ai:embedding:{listing_id}<br/>TTL: 24h
+      CACHE-->>-AI: ✅ Cached
+      
+      AI->>I: 📨 publish listing.ai_processed<br/>{status: "approved", embedding_id}
+      
+    else 🚨 Content Flagged
+      AI->>I: 📨 publish listing.content_flagged<br/>{reason: "inappropriate", confidence: 0.85}
+      Note right of AI: Listing may be hidden<br/>pending manual review
+    end
+    deactivate AI
+  end
+
+  rect rgba(0, 0, 0)
+    Note over API,CACHE: 🔍 Real-time Recommendation Serving
+    API->>+AI: 🔍 GET /api/v1/recommendations<br/>?user_id=123&campus_id=main&limit=10
+    
+    AI->>+CACHE: 🚀 Check cache<br/>GET recommendations:user:123
+    CACHE-->>-AI: 🎯 Cache miss
+    
+    AI->>+VDB: 🔍 Get user's interaction history<br/>Query similar vectors based on:<br/>• Previous views/likes<br/>• Category preferences<br/>• Price range patterns
+    VDB-->>-AI: 📊 Similar listings: [id1, id2, id3...]<br/>with similarity scores
+    
+    AI->>+ML: 🎯 Re-rank recommendations<br/>using hybrid approach:<br/>• Vector similarity (60%)<br/>• Popularity score (20%)<br/>• Recency bonus (20%)
+    ML-->>-AI: 📈 Final ranked recommendations
+    
+    AI->>+CACHE: 🚀 Cache results<br/>SET recommendations:user:123<br/>TTL: 1h
+    CACHE-->>-AI: ✅ Cached
+    
+    AI-->>-API: 📊 Recommendations response<br/>{items: [...], model_version: "1.2.3"}
+  end
+
+  rect rgba(0, 0, 0, 1)
+    Note over AI,VDB: 🔄 Batch Processing & Model Updates
+    
+    Note over AI: ⏰ Scheduled Job: Daily Model Retraining
+    AI->>+VDB: 📊 Export recent interaction data<br/>for model improvement
+    VDB-->>-AI: 📈 Training data: user interactions,<br/>click-through rates, conversions
+    
+    AI->>+ML: 🎓 Retrain recommendation model<br/>• Update user embeddings<br/>• Adjust similarity weights<br/>• Fine-tune ranking algorithm
+    ML-->>-AI: ✅ New model version: 1.2.4
+    
+    AI->>+CACHE: 🧹 Invalidate cached recommendations<br/>DEL recommendations:*
+    CACHE-->>-AI: ✅ Cache cleared
+    
+    Note over AI: 🔄 Model deployed, ready for inference
+  end
+
+  rect rgba(0, 0, 0, 1)
+    Note over AI,ES: 🔍 Smart Search Enhancement
+    API->>+AI: 🔍 POST /api/v1/search/semantic<br/>{query: "laptop for programming", campus_id, filters}
+    
+    AI->>+ML: 🔤 Generate query embedding<br/>from search text
+    ML-->>-AI: ✅ Query vector [384]
+    
+    AI->>+VDB: 🔍 Vector similarity search<br/>Find listings similar to query
+    VDB-->>-AI: 📊 Vector matches: [ids with scores]
+    
+    AI->>+ES: 🔍 Keyword search<br/>for exact term matching
+    ES-->>-AI: 📋 Text matches: [ids with scores]
+    
+    AI->>AI: 🎯 Hybrid score fusion<br/>Combine vector + keyword results
+    
+    AI-->>-API: 🔍 Enhanced search results<br/>{items, total, facets, suggestions}
+  end
+
+  Note over L,API: 🎊 AI Pipeline Complete: Content Safe → Indexed → Discoverable
