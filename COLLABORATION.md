@@ -5,6 +5,7 @@ This guide outlines the development workflow, best practices, and conventions us
 ## 🚀 Quick Start
 
 ### 1. Initial Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/UniBazzar/unibazzar.git
@@ -18,13 +19,14 @@ docker-compose -f infra/docker-compose.yml ps
 ```
 
 ### 2. Development Workflow
+
 ```bash
 # Start services (use separate terminals)
 
 # Terminal 1 - Auth Service
 cd services/auth-service && make run
 
-# Terminal 2 - AI Service  
+# Terminal 2 - AI Service
 cd services/ai-service && source venv/bin/activate && uvicorn app.main:app --reload --port 8084
 
 # Terminal 3 - Listing Service (when ready)
@@ -35,6 +37,7 @@ cd services/order-service && make run
 ```
 
 ### 3. Health Checks
+
 ```bash
 # Test individual services
 curl http://localhost:8081/healthz  # Auth Service
@@ -55,18 +58,21 @@ We use a modified GitFlow strategy optimized for microservices and continuous de
 ### Branch Types
 
 #### `main` - Production Branch
+
 - **Purpose**: Production-ready code only
 - **Protection**: Branch protection enabled, requires PR reviews
 - **Deployment**: Auto-deploys to production environment
 - **Merge**: Only from `develop` via release branches
 
-#### `develop` - Integration Branch  
+#### `develop` - Integration Branch
+
 - **Purpose**: Integration of completed features
 - **Protection**: Requires PR reviews, all tests must pass
 - **Deployment**: Auto-deploys to staging environment
 - **Merge**: From feature branches and hotfix branches
 
 #### `feature/*` - Feature Branches
+
 - **Naming**: `feature/JIRA-123-add-user-authentication`
 - **Purpose**: Individual feature development
 - **Lifetime**: Short-lived, deleted after merge
@@ -74,12 +80,14 @@ We use a modified GitFlow strategy optimized for microservices and continuous de
 - **Merge**: Into `develop` via PR
 
 #### `bugfix/*` - Bug Fix Branches
+
 - **Naming**: `bugfix/JIRA-456-fix-payment-webhook`
 - **Purpose**: Non-critical bug fixes
 - **Base**: Created from `develop`
 - **Merge**: Into `develop` via PR
 
 #### `hotfix/*` - Hotfix Branches
+
 - **Naming**: `hotfix/JIRA-789-critical-security-patch`
 - **Purpose**: Critical production fixes
 - **Base**: Created from `main`
@@ -87,6 +95,7 @@ We use a modified GitFlow strategy optimized for microservices and continuous de
 - **Deployment**: Immediate production deployment
 
 #### `release/*` - Release Branches
+
 - **Naming**: `release/v1.2.0`
 - **Purpose**: Release preparation and stabilization
 - **Base**: Created from `develop`
@@ -100,7 +109,7 @@ feature/JIRA-123-add-jwt-authentication
 feature/JIRA-124-implement-search-api
 feature/JIRA-125-setup-recommendation-engine
 
-# Bug fix branches  
+# Bug fix branches
 bugfix/JIRA-456-fix-duplicate-listings
 bugfix/JIRA-457-resolve-memory-leak
 
@@ -130,7 +139,7 @@ git add .
 git commit -m "feat(auth): add user profile management endpoints
 
 - Add GET /api/v1/users/profile endpoint
-- Add PUT /api/v1/users/profile endpoint  
+- Add PUT /api/v1/users/profile endpoint
 - Implement profile validation middleware
 - Add comprehensive unit tests
 
@@ -175,6 +184,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 ### Scopes
 
 Service-specific scopes:
+
 - `auth`: Authentication service
 - `listings`: Listing service
 - `orders`: Order service
@@ -184,6 +194,7 @@ Service-specific scopes:
 - `analytics`: Analytics service
 
 Infrastructure scopes:
+
 - `infra`: Infrastructure changes
 - `deploy`: Deployment related
 - `docs`: Documentation
@@ -249,11 +260,13 @@ Closes JIRA-234, JIRA-235"
 ## 🔄 Pull Request Process
 
 ### PR Title Format
+
 ```
 <type>(<scope>): <description> [JIRA-123]
 ```
 
 Examples:
+
 ```
 feat(auth): add OAuth2 integration [JIRA-123]
 fix(ai): resolve memory leak in embedding service [JIRA-456]
@@ -264,9 +277,11 @@ docs: update API documentation for v2 endpoints [JIRA-789]
 
 ```markdown
 ## Summary
+
 Brief description of what this PR does.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -275,26 +290,31 @@ Brief description of what this PR does.
 - [ ] Refactoring (no functional changes)
 
 ## Related Issues
+
 - Closes #123
 - Related to #456
 - Fixes JIRA-789
 
 ## Changes Made
+
 - [ ] Added user profile management endpoints
 - [ ] Implemented profile validation middleware
 - [ ] Added comprehensive unit tests
 - [ ] Updated API documentation
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing completed
 - [ ] All existing tests pass
 
 ## Screenshots (if applicable)
-*Add screenshots or GIFs for UI changes*
+
+_Add screenshots or GIFs for UI changes_
 
 ## Checklist
+
 - [ ] My code follows the project's style guidelines
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -305,9 +325,11 @@ Brief description of what this PR does.
 - [ ] Any dependent changes have been merged and published
 
 ## Deployment Notes
+
 Any special deployment considerations or migration steps required.
 
 ## Security Considerations
+
 Any security implications of this change.
 ```
 
@@ -323,12 +345,14 @@ Any security implications of this change.
 ### Review Guidelines
 
 **For Authors:**
+
 - Keep PRs small and focused (< 400 lines when possible)
 - Write clear descriptions and test instructions
 - Respond promptly to feedback
 - Resolve conflicts before requesting review
 
 **For Reviewers:**
+
 - Review within 24 hours for urgent PRs
 - Focus on logic, security, performance, and maintainability
 - Provide constructive feedback with suggestions
@@ -360,6 +384,7 @@ services/{service-name}/
 ### File Naming Conventions
 
 **Go Files:**
+
 ```
 user_service.go          # Snake case for files
 user_service_test.go     # Test files
@@ -368,6 +393,7 @@ postgres_user_repo.go   # Concrete implementations
 ```
 
 **Python Files:**
+
 ```
 embed_service.py         # Snake case
 recommendation_engine.py
@@ -376,6 +402,7 @@ __init__.py             # Package initialization
 ```
 
 **Configuration Files:**
+
 ```
 .env.example            # Environment template
 config.yaml            # YAML configuration
@@ -387,16 +414,19 @@ docker-compose.yml     # Docker compose files
 ### Test Types and Coverage
 
 1. **Unit Tests** (80% coverage minimum)
+
    - Test individual functions and methods
    - Mock external dependencies
    - Fast execution (< 1s per test)
 
 2. **Integration Tests** (Service level)
+
    - Test service interactions with databases
    - Test event publishing/consuming
    - Use test containers for dependencies
 
 3. **Contract Tests** (API level)
+
    - Test API contracts between services
    - Use tools like Pact or OpenAPI validation
    - Ensure backward compatibility
@@ -485,6 +515,7 @@ git branch -d feature/JIRA-123-add-awesome-feature
 ### Code Review Checklist
 
 **Before Submitting PR:**
+
 - [ ] Code follows style guidelines
 - [ ] All tests pass locally
 - [ ] No debug code or console.log statements
@@ -493,6 +524,7 @@ git branch -d feature/JIRA-123-add-awesome-feature
 - [ ] Breaking changes are documented
 
 **During Code Review:**
+
 - [ ] Logic is correct and efficient
 - [ ] Error handling is appropriate
 - [ ] Security considerations are addressed
@@ -504,6 +536,7 @@ git branch -d feature/JIRA-123-add-awesome-feature
 ## 🔒 Security Practices
 
 ### Secrets Management
+
 ```bash
 # Never commit secrets - use environment variables
 DATABASE_URL=postgres://user:pass@localhost/db  # ❌ Bad
@@ -517,6 +550,7 @@ cp .env.example .env
 ### Security Review Requirements
 
 Changes requiring security review:
+
 - Authentication/authorization logic
 - Data access and permissions
 - External API integrations
@@ -529,16 +563,19 @@ Changes requiring security review:
 ### Performance Benchmarks
 
 **API Response Times:**
+
 - P50: < 100ms
-- P95: < 500ms  
+- P95: < 500ms
 - P99: < 1s
 
 **Database Queries:**
+
 - Simple queries: < 50ms
 - Complex queries: < 200ms
 - Use EXPLAIN ANALYZE for optimization
 
 **Memory Usage:**
+
 - Go services: < 512MB baseline
 - Python AI service: < 2GB (due to ML models)
 - Container limits enforced in production
@@ -546,6 +583,7 @@ Changes requiring security review:
 ### Monitoring Requirements
 
 All services must expose:
+
 - Health check endpoints (`/healthz`, `/readyz`)
 - Prometheus metrics endpoint (`/metrics`)
 - Structured logging with correlation IDs
@@ -556,24 +594,28 @@ All services must expose:
 A feature is considered "done" when:
 
 **Development Complete:**
+
 - [ ] Code implemented and tested
 - [ ] Code review completed and approved
 - [ ] All CI/CD checks pass
 - [ ] Documentation updated
 
 **Quality Assurance:**
+
 - [ ] Unit tests written and passing (80% coverage)
 - [ ] Integration tests written and passing
 - [ ] Manual testing completed
 - [ ] Performance benchmarks met
 
 **Deployment Ready:**
+
 - [ ] Configuration management updated
 - [ ] Database migrations tested
 - [ ] Monitoring and alerting configured
 - [ ] Security review completed (if applicable)
 
 **Documentation:**
+
 - [ ] API documentation updated
 - [ ] README files updated
 - [ ] Architecture diagrams updated (if needed)
@@ -582,13 +624,14 @@ A feature is considered "done" when:
 ## 🔧 Development Tools
 
 ### Required Tools
+
 ```bash
 # Go development
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install github.com/cosmtrek/air@latest  # Hot reload
 go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
-# Python development  
+# Python development
 pip install black isort flake8 mypy pytest
 
 # Database tools
@@ -607,6 +650,7 @@ git config --global user.email "your.email@unibazzar.com"
 ### IDE Configuration
 
 **VS Code Extensions:**
+
 - Go (Google)
 - Python (Microsoft)
 - Docker (Microsoft)
@@ -615,6 +659,7 @@ git config --global user.email "your.email@unibazzar.com"
 - Thunder Client (API testing)
 
 **IntelliJ/GoLand Plugins:**
+
 - Go plugin
 - Docker plugin
 - Database Tools and SQL
@@ -626,7 +671,7 @@ git config --global user.email "your.email@unibazzar.com"
 # Go services debugging
 dlv debug cmd/server/main.go
 
-# Python service debugging  
+# Python service debugging
 python -m debugpy --listen 5678 --wait-for-client -m uvicorn app.main:app --reload
 
 # Docker debugging
@@ -638,18 +683,21 @@ docker-compose -f docker-compose.yml -f docker-compose.debug.yml up
 ### Development Metrics
 
 **Code Quality:**
+
 - Test coverage > 80%
 - Code review coverage 100%
 - Static analysis violations: 0
 - Security vulnerabilities: 0
 
 **Delivery Metrics:**
+
 - Lead time: < 3 days (feature → production)
 - Deployment frequency: Multiple times per day
 - Mean time to recovery: < 1 hour
 - Change failure rate: < 5%
 
 **Team Velocity:**
+
 - Sprint burndown tracking
 - Story points completed per sprint
 - Cycle time per story type
@@ -660,12 +708,14 @@ docker-compose -f docker-compose.yml -f docker-compose.debug.yml up
 ### Communication Channels
 
 **Slack Channels:**
+
 - `#unibazzar-dev` - General development discussion
 - `#unibazzar-incidents` - Production issues and alerts
 - `#unibazzar-releases` - Release announcements
 - `#unibazzar-architecture` - Architecture discussions
 
 **Email Lists:**
+
 - `dev-team@unibazzar.com` - Development team
 - `architecture@unibazzar.com` - Architecture decisions
 - `on-call@unibazzar.com` - Production support

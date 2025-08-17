@@ -1,10 +1,13 @@
 # Pull Request Template
 
 ## Summary
-*Provide a brief description of what this PR accomplishes*
+
+_Provide a brief description of what this PR accomplishes_
 
 ## Type of Change
+
 <!-- Mark the relevant option with an "x" -->
+
 - [ ] 🚀 New feature (non-breaking change which adds functionality)
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -15,21 +18,27 @@
 - [ ] 🔧 Chore (maintenance, dependencies, tooling)
 
 ## Related Issues
+
 <!-- Link to relevant issues, stories, or tickets -->
+
 - Closes #
 - Fixes JIRA-
 - Related to #
 
 ## Changes Made
+
 <!-- Describe the technical changes made -->
-- [ ] 
-- [ ] 
-- [ ] 
+
+- [ ]
+- [ ]
+- [ ]
 
 ## Service(s) Affected
+
 <!-- Check all that apply -->
+
 - [ ] auth-service
-- [ ] listing-service  
+- [ ] listing-service
 - [ ] order-service
 - [ ] ai-service
 - [ ] notification-service
@@ -39,15 +48,18 @@
 - [ ] Documentation
 
 ## Testing
+
 ### Test Coverage
+
 - [ ] Unit tests added/updated
-- [ ] Integration tests added/updated  
+- [ ] Integration tests added/updated
 - [ ] End-to-end tests added/updated
 - [ ] Manual testing completed
 - [ ] All existing tests pass
 - [ ] Test coverage meets minimum threshold (80%)
 
 ### Test Commands
+
 ```bash
 # Commands to run tests locally
 make test
@@ -56,29 +68,37 @@ make test-coverage
 ```
 
 ### Manual Testing Instructions
+
 <!-- Provide step-by-step instructions for manual testing -->
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 ## API Changes
+
 <!-- If this PR includes API changes, document them -->
+
 - [ ] No API changes
 - [ ] Backward compatible API changes
 - [ ] Breaking API changes (requires version bump)
 
 ### New Endpoints
+
 - `GET /api/v1/endpoint` - Description
 - `POST /api/v1/endpoint` - Description
 
 ### Modified Endpoints
+
 - `PUT /api/v1/endpoint` - What changed
 - `DELETE /api/v1/endpoint` - What changed
 
 ### Deprecated/Removed Endpoints
+
 - `GET /api/v1/old-endpoint` - Deprecated, use `/api/v1/new-endpoint`
 
 ## Database Changes
+
 - [ ] No database changes
 - [ ] New tables/collections
 - [ ] Schema modifications
@@ -86,6 +106,7 @@ make test-coverage
 - [ ] Index changes
 
 ### Migration Commands
+
 ```bash
 # Commands to run migrations
 make migrate-up
@@ -93,12 +114,14 @@ make migrate-down
 ```
 
 ## Configuration Changes
+
 - [ ] No configuration changes
 - [ ] Environment variables added/modified
 - [ ] Configuration files updated
 - [ ] Feature flags introduced
 
 ### Environment Variables
+
 ```bash
 # New environment variables to set
 NEW_CONFIG_VAR=value
@@ -106,7 +129,9 @@ ANOTHER_CONFIG=setting
 ```
 
 ## Security Considerations
+
 <!-- Address security implications of this change -->
+
 - [ ] No security implications
 - [ ] Input validation added/reviewed
 - [ ] Authentication/authorization changes
@@ -114,19 +139,23 @@ ANOTHER_CONFIG=setting
 - [ ] Security scan completed
 
 ## Performance Impact
+
 - [ ] No performance impact expected
 - [ ] Performance improvement expected
 - [ ] Potential performance degradation (explain mitigation)
 - [ ] Load testing completed
 
 ### Benchmarks
+
 <!-- Include before/after metrics if applicable -->
+
 ```
 Before: P95 response time: 200ms
 After:  P95 response time: 150ms
 ```
 
 ## Deployment Considerations
+
 - [ ] No special deployment steps required
 - [ ] Database migrations must run before deployment
 - [ ] Feature flags must be enabled after deployment
@@ -134,13 +163,15 @@ After:  P95 response time: 150ms
 - [ ] External service coordination required
 
 ### Deployment Order
+
 1. Deploy infrastructure changes
-2. Run database migrations  
+2. Run database migrations
 3. Deploy application changes
 4. Enable feature flags
 5. Verify monitoring and alerts
 
 ## Monitoring and Observability
+
 - [ ] New metrics added
 - [ ] Alerts configured
 - [ ] Dashboards updated
@@ -148,6 +179,7 @@ After:  P95 response time: 150ms
 - [ ] Distributed tracing instrumented
 
 ## Documentation Updates
+
 - [ ] API documentation updated
 - [ ] README files updated
 - [ ] Architecture diagrams updated
@@ -155,10 +187,13 @@ After:  P95 response time: 150ms
 - [ ] Changelog updated
 
 ## Screenshots/Videos
+
 <!-- Add screenshots for UI changes or GIFs for workflows -->
 
 ## Checklist
+
 <!-- Final checklist before requesting review -->
+
 - [ ] My code follows the project's style guidelines
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
@@ -170,6 +205,7 @@ After:  P95 response time: 150ms
 - [ ] I have updated the CHANGELOG.md (if applicable)
 
 ## Pre-merge Requirements
+
 - [ ] All CI checks are passing
 - [ ] Code review completed and approved
 - [ ] Security review completed (if required)
@@ -177,10 +213,13 @@ After:  P95 response time: 150ms
 - [ ] Product owner approval (if required)
 
 ## Reviewer Notes
+
 <!-- Additional context for reviewers -->
 
 ### Review Focus Areas
+
 Please pay special attention to:
+
 - [ ] Business logic correctness
 - [ ] Error handling
 - [ ] Security implications
@@ -188,13 +227,15 @@ Please pay special attention to:
 - [ ] API contract compliance
 
 ### Questions for Reviewers
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 ---
 
 ## Post-Merge Tasks
+
 - [ ] Monitor deployment for issues
 - [ ] Verify metrics and alerts
 - [ ] Update project tracking (close tickets)

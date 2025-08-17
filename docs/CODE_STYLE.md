@@ -38,7 +38,7 @@ const (
     MaxRetries     = 3
 )
 
-// Variables  
+// Variables
 var (
     ErrUserNotFound = errors.New("user not found")
     ErrInvalidInput = errors.New("invalid input")
@@ -109,11 +109,11 @@ func (s *UserService) CreateUser(ctx context.Context, user User) error {
     if err := s.validate(user); err != nil {
         return fmt.Errorf("user validation failed: %w", err)
     }
-    
+
     if err := s.repo.Create(ctx, user); err != nil {
         return fmt.Errorf("failed to create user: %w", err)
     }
-    
+
     return nil
 }
 
@@ -134,12 +134,12 @@ func HandleError(err error) {
         // handle validation error
         return
     }
-    
+
     if errors.Is(err, ErrUserNotFound) {
         // handle user not found error
         return
     }
-    
+
     // handle generic error
 }
 ```
@@ -152,18 +152,18 @@ func TestUserService_CreateUser_Success(t *testing.T) {
     ctx := context.Background()
     mockRepo := &MockUserRepository{}
     service := NewUserService(mockRepo, &MockLogger{})
-    
+
     user := User{
         Email:     "test@example.com",
         FirstName: "John",
         LastName:  "Doe",
     }
-    
+
     mockRepo.On("Create", ctx, user).Return(nil)
-    
+
     // Act
     err := service.CreateUser(ctx, user)
-    
+
     // Assert
     assert.NoError(t, err)
     mockRepo.AssertExpectations(t)
@@ -173,13 +173,13 @@ func TestUserService_CreateUser_ValidationError(t *testing.T) {
     // Test validation error scenario
     ctx := context.Background()
     service := NewUserService(&MockUserRepository{}, &MockLogger{})
-    
+
     invalidUser := User{
         Email: "invalid-email", // Invalid email format
     }
-    
+
     err := service.CreateUser(ctx, invalidUser)
-    
+
     assert.Error(t, err)
     assert.Contains(t, err.Error(), "validation failed")
 }
@@ -239,10 +239,10 @@ def _validate_user_input(user_data: dict) -> bool:
 # Classes: PascalCase
 class UserService:
     """Service for user-related operations."""
-    
+
     def __init__(self, repository: UserRepository):
         self.repository = repository
-        
+
 # Constants: SCREAMING_SNAKE_CASE
 API_VERSION = "v1"
 DEFAULT_TIMEOUT = 30
@@ -254,7 +254,7 @@ class UserCreate(BaseModel):
     email: str = Field(..., description="User email address")
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
-    
+
     @validator('email')
     def validate_email(cls, value):
         """Validate email format."""
@@ -268,7 +268,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     created_at: datetime
-    
+
     class Config:
         """Pydantic configuration."""
         from_attributes = True
@@ -287,19 +287,19 @@ async def generate_embeddings(
 ) -> np.ndarray:
     """
     Generate embeddings for a list of texts using specified model.
-    
+
     Args:
         texts: List of text strings to embed
         model_name: Name of the sentence transformer model to use
         batch_size: Number of texts to process in each batch
-        
+
     Returns:
         numpy.ndarray: Array of embeddings with shape (n_texts, embedding_dim)
-        
+
     Raises:
         ValueError: If texts list is empty or model_name is invalid
         RuntimeError: If model fails to load or generate embeddings
-        
+
     Example:
         >>> texts = ["Hello world", "Python is great"]
         >>> embeddings = await generate_embeddings(texts)
@@ -308,7 +308,7 @@ async def generate_embeddings(
     """
     if not texts:
         raise ValueError("Texts list cannot be empty")
-        
+
     try:
         # Implementation details
         pass
@@ -376,7 +376,7 @@ async def process_batch_embeddings(texts: List[str]) -> List[np.ndarray]:
     """Process multiple text embeddings concurrently."""
     tasks = [generate_single_embedding(text) for text in texts]
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Handle any exceptions
     embeddings = []
     for i, result in enumerate(results):
@@ -385,7 +385,7 @@ async def process_batch_embeddings(texts: List[str]) -> List[np.ndarray]:
             embeddings.append(np.zeros(EMBEDDING_DIMENSION))
         else:
             embeddings.append(result)
-    
+
     return embeddings
 
 # Database transactions
@@ -404,13 +404,13 @@ async def create_user_with_profile(user_data: UserCreate) -> User:
 
 ```typescript
 // Imports (external libraries first, then internal)
-import express, { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import Redis from 'ioredis';
+import express, { Request, Response, NextFunction } from "express";
+import { v4 as uuidv4 } from "uuid";
+import Redis from "ioredis";
 
-import { logger } from '../utils/logger';
-import { HttpClient } from '../utils/http-client';
-import { CacheService } from '../services/cache-service';
+import { logger } from "../utils/logger";
+import { HttpClient } from "../utils/http-client";
+import { CacheService } from "../services/cache-service";
 
 // Types and interfaces
 interface ApiResponse<T = any> {
@@ -435,50 +435,49 @@ const MAX_FEED_ITEMS = 100;
 export class FeedMerger {
   private readonly cacheService: CacheService;
   private readonly httpClient: HttpClient;
-  
+
   constructor(cacheService: CacheService, httpClient: HttpClient) {
     this.cacheService = cacheService;
     this.httpClient = httpClient;
   }
-  
+
   public async mergeFeed(request: MergeFeedRequest): Promise<ApiResponse> {
     const startTime = Date.now();
     const correlationId = uuidv4();
-    
+
     try {
-      logger.info('Starting feed merge', {
+      logger.info("Starting feed merge", {
         correlationId,
         userId: request.userId,
-        campusId: request.campusId
+        campusId: request.campusId,
       });
-      
+
       // Implementation
       const result = await this.processFeedMerge(request, correlationId);
-      
-      logger.info('Feed merge completed', {
+
+      logger.info("Feed merge completed", {
         correlationId,
         duration: Date.now() - startTime,
-        itemCount: result.data?.items?.length || 0
+        itemCount: result.data?.items?.length || 0,
       });
-      
+
       return result;
-      
     } catch (error) {
-      logger.error('Feed merge failed', {
+      logger.error("Feed merge failed", {
         correlationId,
         error: error.message,
         stack: error.stack,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       });
-      
+
       return {
         success: false,
-        error: 'Failed to merge feed',
-        timestamp: new Date().toISOString()
+        error: "Failed to merge feed",
+        timestamp: new Date().toISOString(),
       };
     }
   }
-  
+
   private async processFeedMerge(
     request: MergeFeedRequest,
     correlationId: string
@@ -487,7 +486,7 @@ export class FeedMerger {
     return {
       success: true,
       data: { items: [] },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }
@@ -512,7 +511,7 @@ private _validateInput(input: unknown): boolean {
 // Classes: PascalCase
 export class UserService {
   private readonly repository: UserRepository;
-  
+
   constructor(repository: UserRepository) {
     this.repository = repository;
   }
@@ -556,7 +555,7 @@ enum HttpStatus {
 export class ApiError extends Error {
   public readonly statusCode: number;
   public readonly correlationId?: string;
-  
+
   constructor(
     message: string,
     statusCode: number = 500,
@@ -566,7 +565,7 @@ export class ApiError extends Error {
     this.name = this.constructor.name;
     this.statusCode = statusCode;
     this.correlationId = correlationId;
-    
+
     // Maintains proper stack trace
     Error.captureStackTrace(this, this.constructor);
   }
@@ -574,9 +573,13 @@ export class ApiError extends Error {
 
 export class ValidationError extends ApiError {
   public readonly field: string;
-  
+
   constructor(field: string, message: string, correlationId?: string) {
-    super(`Validation error on field '${field}': ${message}`, 422, correlationId);
+    super(
+      `Validation error on field '${field}': ${message}`,
+      422,
+      correlationId
+    );
     this.field = field;
   }
 }
@@ -588,40 +591,40 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  const correlationId = req.headers['x-correlation-id'] as string;
-  
+  const correlationId = req.headers["x-correlation-id"] as string;
+
   if (error instanceof ApiError) {
-    logger.warn('API error occurred', {
+    logger.warn("API error occurred", {
       correlationId,
       error: error.message,
       statusCode: error.statusCode,
       path: req.path,
-      method: req.method
+      method: req.method,
     });
-    
+
     res.status(error.statusCode).json({
       success: false,
       error: error.message,
       correlationId,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     return;
   }
-  
+
   // Unexpected errors
-  logger.error('Unexpected error occurred', {
+  logger.error("Unexpected error occurred", {
     correlationId,
     error: error.message,
     stack: error.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
   });
-  
+
   res.status(500).json({
     success: false,
-    error: 'Internal server error',
+    error: "Internal server error",
     correlationId,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
@@ -667,7 +670,7 @@ CREATE INDEX idx_users_created_at ON users(created_at);
 CREATE INDEX idx_user_profiles_user_id ON user_profiles(user_id);
 
 -- Query formatting
-SELECT 
+SELECT
     u.id,
     u.email,
     u.first_name,
@@ -677,7 +680,7 @@ SELECT
     u.created_at
 FROM users u
     LEFT JOIN user_profiles up ON u.id = up.user_id
-WHERE 
+WHERE
     u.email = $1
     AND u.created_at >= $2
 ORDER BY u.created_at DESC
@@ -693,14 +696,14 @@ LIMIT 20;
 
 ```javascript
 // Table design: Use descriptive table names
-const tableName = 'unibazzar-listings-prod';
+const tableName = "unibazzar-listings-prod";
 
 // Primary Key patterns
-const pk = 'LISTING#' + listingId;      // Partition Key
-const sk = 'METADATA';                  // Sort Key
+const pk = "LISTING#" + listingId; // Partition Key
+const sk = "METADATA"; // Sort Key
 
 // GSI patterns
-const gsi1pk = 'CAMPUS#' + campusId;
+const gsi1pk = "CAMPUS#" + campusId;
 const gsi1sk = createdAt;
 
 // Item structure
@@ -710,18 +713,18 @@ const listingItem = {
   GSI1PK: gsi1pk,
   GSI1SK: gsi1sk,
   id: listingId,
-  title: 'MacBook Pro 13-inch',
-  description: 'Excellent condition...',
-  price: 120000,  // Store in cents
-  currency: 'USD',
-  category: 'electronics',
-  sellerId: 'user-123',
-  campusId: 'university-main',
-  status: 'available',
-  createdAt: '2024-01-17T12:00:00Z',
-  updatedAt: '2024-01-17T12:00:00Z',
+  title: "MacBook Pro 13-inch",
+  description: "Excellent condition...",
+  price: 120000, // Store in cents
+  currency: "USD",
+  category: "electronics",
+  sellerId: "user-123",
+  campusId: "university-main",
+  status: "available",
+  createdAt: "2024-01-17T12:00:00Z",
+  updatedAt: "2024-01-17T12:00:00Z",
   // Add TTL for temporary items
-  expiresAt: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days
+  expiresAt: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
 };
 ```
 
@@ -797,7 +800,7 @@ POST /api/v1/listings/{id}/feature        # Feature a listing
       "title": "MacBook Pro"
     },
     {
-      "id": "listing-2", 
+      "id": "listing-2",
       "title": "iPhone 13"
     }
   ],
@@ -874,7 +877,7 @@ func (s *UserService) CreateUser(ctx context.Context, user User) error {
     if err := s.validateUser(user); err != nil {
         return fmt.Errorf("validation failed: %w", err)
     }
-    
+
     // Implementation...
 }
 
@@ -882,12 +885,12 @@ func (s *UserService) CreateUser(ctx context.Context, user User) error {
 func (s *UserService) calculateUserScore(user User) int {
     // User score calculation based on multiple factors:
     // - Account age (up to 20 points)
-    // - Successful transactions (up to 50 points) 
+    // - Successful transactions (up to 50 points)
     // - Reviews received (up to 30 points)
     // This score affects search ranking and trust indicators
-    
+
     score := 0
-    
+
     // Account age bonus (max 20 points)
     accountAge := time.Since(user.CreatedAt)
     if accountAge > 365*24*time.Hour {
@@ -895,7 +898,7 @@ func (s *UserService) calculateUserScore(user User) int {
     } else {
         score += int(accountAge.Hours() / (365 * 24) * 20)
     }
-    
+
     // ... rest of calculation
     return score
 }
@@ -911,26 +914,33 @@ Each service should have a comprehensive README:
 Brief description of what this service does.
 
 ## Features
+
 - Feature 1
 - Feature 2
 
 ## API Endpoints
+
 - GET /api/v1/resource - Description
 - POST /api/v1/resource - Description
 
 ## Configuration
+
 Environment variables and configuration options.
 
 ## Development
+
 How to run locally, test, and develop.
 
 ## Deployment
+
 How to deploy this service.
 
 ## Monitoring
+
 Key metrics and alerts to monitor.
 
 ## Troubleshooting
+
 Common issues and solutions.
 ```
 
@@ -946,7 +956,7 @@ linters-settings:
     min-complexity: 15
   gocognit:
     min-complexity: 20
-  
+
 linters:
   enable:
     - errcheck
@@ -971,7 +981,7 @@ linters:
 [flake8]
 max-line-length = 88
 extend-ignore = E203, W503
-exclude = 
+exclude =
     .git,
     __pycache__,
     .venv,
@@ -998,17 +1008,17 @@ line_length = 88
 ```javascript
 module.exports = {
   extends: [
-    '@typescript-eslint/recommended',
-    'prettier/@typescript-eslint',
-    'plugin:prettier/recommended'
+    "@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended",
   ],
   rules: {
-    '@typescript-eslint/explicit-function-return-type': 'error',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': 'error',
-    'prefer-const': 'error',
-    'no-var': 'error'
-  }
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+  },
 };
 ```
 

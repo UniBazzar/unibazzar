@@ -5,29 +5,34 @@ This directory contains various development tools, utilities, and scripts to enh
 ## Available Tools
 
 ### 1. Database Utilities (`db/`)
+
 - **migrate.sh** - Database migration runner
 - **seed.sh** - Database seeding with test data
 - **backup.sh** - Database backup utility
 - **reset.sh** - Reset database to clean state
 
 ### 2. Code Generation (`codegen/`)
+
 - **generate-api.sh** - Generate API clients from OpenAPI specs
 - **generate-mocks.sh** - Generate test mocks for interfaces
 - **generate-proto.sh** - Generate gRPC code from protocol buffers
 
 ### 3. Testing Utilities (`testing/`)
+
 - **run-tests.sh** - Run tests across all services
 - **coverage-report.sh** - Generate comprehensive coverage report
 - **load-test.sh** - Run performance/load tests
 - **integration-test.sh** - Run integration tests
 
 ### 4. DevOps Tools (`devops/`)
+
 - **deploy.sh** - Deployment automation
 - **monitor.sh** - Health check and monitoring
 - **logs.sh** - Centralized log viewer
 - **metrics.sh** - Metrics collection and reporting
 
 ### 5. Git Hooks (`hooks/`)
+
 - **install-hooks.sh** - Install Git hooks across the project
 - **pre-commit** - Pre-commit validation
 - **commit-msg** - Commit message format validation
@@ -64,6 +69,7 @@ cd tools
 ```
 
 This will:
+
 1. Install Git hooks
 2. Set up pre-commit configuration
 3. Install necessary CLI tools
