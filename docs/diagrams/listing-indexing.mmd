@@ -1,0 +1,90 @@
+%% Listing creation -> indexing -> recommendation flow
+sequenceDiagram
+  autonumber
+  participant U as 📱 User (Seller)
+  participant GW as 🚪 API Gateway
+  participant L as 📋 Listing Service
+  participant S3 as 📦 S3 Media Storage
+  participant I as 📨 RabbitMQ Events
+  participant SI as 🔍 Search Indexer
+  participant AI as 🤖 AI Service
+  participant OS as 🔎 OpenSearch
+  participant VDB as 🧠 Vector Database
+  participant DDB as ⚡ DynamoDB
+  participant CACHE as 🚀 Redis Cache
+
+  Note over U,CACHE: 🎯 Complete Listing Lifecycle: Create → Index → AI Processing
+  
+  rect rgba(0, 0, 0, 1)
+    Note over U,S3: 📝 Listing Creation Phase
+    U->>+GW: 📋 POST /listings<br/>{title, description, price, images[]}
+    GW->>+L: 🏗️ CreateListingCommand
+    
+    L->>+DDB: 💾 Begin transaction
+    L->>DDB: Insert listing document<br/>{id, title, desc, seller_id, status: DRAFT}
+    
+    alt 📷 Has Media Files
+      L->>+S3: 📤 Generate signed upload URLs<br/>PUT /listings/{id}/media/*
+      S3-->>-L: ✅ Signed URLs + media keys
+      L->>DDB: 💾 Update listing with media_keys[]
+      Note right of S3: User uploads directly to S3<br/>using signed URLs (client-side)
+      U->>S3: 📤 Upload images/videos
+      S3-->>U: ✅ Upload complete
+    end
+    
+    L->>DDB: 💾 Update status: ACTIVE + commit transaction
+    L->>DDB: 💾 Write outbox event (listing.created)
+    deactivate DDB
+    
+    L->>+I: 📨 Outbox publisher → listing.created
+    L->>-GW: ✅ Listing created successfully
+    GW->>-U: 🎉 Your listing is live!
+  end
+  
+  Note over I,CACHE: 🔄 Asynchronous Processing Pipeline
+  
+  par Search Indexing Flow
+    I-->>+SI: 🔍 listing.created event
+    SI->>SI: 🏗️ Transform to search document<br/>{title, desc, category, price, location}
+    SI->>+OS: 📝 Index document<br/>POST /listings/_doc/{listing_id}
+    OS-->>-SI: ✅ Indexed successfully
+    SI->>CACHE: 🚀 Cache search metadata<br/>SET search:listing:{id}
+    Note right of SI: Document now searchable<br/>in full-text search
+    deactivate SI
+    
+  and AI Processing Flow
+    I-->>+AI: 🤖 listing.created event
+    AI->>AI: 🧠 Generate text embeddings<br/>using sentence-transformers
+    AI->>AI: 🏷️ Content moderation check<br/>(inappropriate content detection)
+    
+    alt ✅ Content Approved
+      AI->>+VDB: 🧠 Upsert vector embedding<br/>id={listing_id}, vector[384]
+      VDB-->>-AI: ✅ Vector stored
+      AI->>DDB: 💾 Cache embedding metadata<br/>for quick similarity searches
+      AI->>I: 📨 publish listing.ai_processed<br/>{status: "approved"}
+      
+    else 🚨 Content Flagged
+      AI->>I: 📨 publish listing.content_flagged<br/>{reason, confidence}
+      Note right of AI: Listing may be auto-hidden<br/>pending manual review
+    end
+    deactivate AI
+    
+  and Real-time Updates
+    I-->>+CACHE: 🚀 Update cached counters
+    CACHE->>CACHE: INCR campus:{campus_id}:listing_count
+    CACHE->>CACHE: ZADD trending_listings {timestamp} {listing_id}
+    deactivate CACHE
+  end
+  
+  rect rgba(0, 0, 0, 1)
+    Note over AI,VDB: 🎯 Advanced AI Features (Async)
+    
+    AI->>AI: 🔄 Trigger recommendation recomputation<br/>for similar users/categories
+    AI->>VDB: 🔍 Find similar listings<br/>using vector similarity search
+    AI->>CACHE: 🚀 Update recommendation cache<br/>for affected users
+    
+    Note right of AI: Background job: Update ML models<br/>with new listing data
+  end
+  
+  Note over U,CACHE: 🎊 Listing Processing Complete
+  Note over U,CACHE: ✅ Searchable ✅ AI-Enhanced ✅ Recommendations Updated
