@@ -1,0 +1,91 @@
+%% RabbitMQ topology (topic exchange + queues + DLQ)
+graph TB
+    subgraph Exchanges["📨 Exchanges"]
+        EX["🔄 domain.events<br/>(type: topic, durable: true)<br/>🎯 Main event routing hub"]
+        DLX["💀 domain.dlx<br/>(dead-letter exchange)<br/>🚨 Failed message handling"]
+    end
+
+    subgraph ListingQueues["📋 Listing Service Queues"]
+        Q1["📋 listing.events.queue<br/>🔗 Binding: listing.*<br/>⚡ Auto-delete: false<br/>🎯 Process listing events"]
+        Q1R["🔄 listing.events.retry<br/>⏰ TTL: 30s → domain.events<br/>📈 Max retries: 3"]
+        Q1P["💀 listing.events.poison<br/>🚨 Manual intervention needed<br/>📊 Monitor for failures"]
+    end
+
+    subgraph OrderQueues["📦 Order Service Queues"]
+        Q2["📦 order.events.queue<br/>🔗 Binding: order.*<br/>🎯 Process order lifecycle"]
+        Q2R["🔄 order.events.retry<br/>⏰ TTL: 60s → domain.events<br/>📈 Exponential backoff"]
+        Q2P["💀 order.events.poison<br/>🚨 Dead letter for manual review"]
+    end
+
+    subgraph SearchQueues["🔍 Search & AI Queues"]
+        Q3["🔍 search.indexer.queue<br/>🔗 Binding: listing.*, order.completed<br/>🎯 Update search indices"]
+        Q4["🤖 ai.recommendation.queue<br/>🔗 Binding: listing.*, user.*, order.*<br/>🎯 ML model updates"]
+        Q3R["🔄 search.retry<br/>⏰ TTL: 45s"]
+        Q4R["🔄 ai.retry<br/>⏰ TTL: 120s (ML processing)"]
+    end
+
+    subgraph NotificationQueues["📢 Notification Queues"]
+        Q5["📢 notifications.queue<br/>🔗 Binding: *.completed, *.confirmed<br/>🎯 User notifications"]
+        Q6["📧 email.queue<br/>🔗 Binding: notification.email<br/>🎯 Email delivery"]
+        Q7["📱 push.queue<br/>🔗 Binding: notification.push<br/>🎯 Push notifications"]
+    end
+
+    subgraph Analytics["📊 Analytics & Monitoring"]
+        Q8["📊 analytics.queue<br/>🔗 Binding: #<br/>🎯 Capture all events for metrics"]
+        Q9["🔍 audit.queue<br/>🔗 Binding: *.created, *.updated, *.deleted<br/>🎯 Audit trail"]
+    end
+
+    %% Main event flow
+    EX -->|listing.*| Q1
+    EX -->|order.*| Q2
+    EX -->|listing.*, order.completed| Q3
+    EX -->|listing.*, user.*, order.*| Q4
+    EX -->|*.completed, *.confirmed| Q5
+    EX -->|notification.email| Q6
+    EX -->|notification.push| Q7
+        EX -->|# all events| Q8
+    EX -->|*.created, *.updated, *.deleted| Q9
+
+    %% Retry mechanisms
+    Q1 -->|❌ processing fails| Q1R
+    Q1R -->|⏰ TTL expires| EX
+    Q1R -->|💀 max retries exceeded| Q1P
+    
+    Q2 -->|❌ processing fails| Q2R
+    Q2R -->|⏰ TTL expires| EX
+    Q2R -->|💀 max retries exceeded| Q2P
+    
+    Q3 -->|❌ indexing fails| Q3R
+    Q3R -->|⏰ TTL expires| EX
+    
+    Q4 -->|❌ AI processing fails| Q4R
+    Q4R -->|⏰ TTL expires| EX
+
+    %% Dead letter routing
+    Q1P --> DLX
+    Q2P --> DLX
+
+    %% Event Examples
+    subgraph EventExamples["📋 Event Routing Examples"]
+        E1["📋 listing.created<br/>→ listing.events.queue<br/>→ search.indexer.queue<br/>→ ai.recommendation.queue<br/>→ analytics.queue<br/>→ audit.queue"]
+        E2["💳 payment.completed<br/>→ order.events.queue<br/>→ notifications.queue<br/>→ analytics.queue"]
+        E3["🛒 order.confirmed<br/>→ order.events.queue<br/>→ notifications.queue<br/>→ email.queue<br/>→ push.queue<br/>→ audit.queue"]
+    end
+
+    %% Queue Properties
+    subgraph QueueConfig["⚙️ Queue Configuration"]
+        Config["📋 Standard Properties:<br/>• Durable: true<br/>• Auto-delete: false<br/>• Arguments:<br/>  - x-message-ttl: 300000 (5min)<br/>  - x-max-retries: 3<br/>  - x-dead-letter-exchange: domain.dlx<br/><br/>🔍 Monitoring:<br/>• Queue depth alerts<br/>• Consumer lag metrics<br/>• Dead letter tracking"]
+    end
+
+    %% Styling
+    classDef exchange fill:#e1f5fe,stroke:#01579b,stroke-width:3px,color:#000;
+    classDef queue fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000;
+    classDef retry fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000;
+    classDef poison fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000;
+    classDef config fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000;
+    
+    class EX,DLX exchange;
+    class Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9 queue;
+    class Q1R,Q2R,Q3R,Q4R retry;
+    class Q1P,Q2P poison;
+    class Config config;
