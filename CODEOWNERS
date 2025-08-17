@@ -1,0 +1,45 @@
+# UniBazzar Team Code Ownership
+
+# Global ownership
+
+- @UniBazzar/leads
+
+# Infrastructure and DevOps
+
+/infra/ @UniBazzar/devops
+/deploy/ @UniBazzar/devops
+/.github/workflows/ @UniBazzar/devops
+
+# Documentation
+
+/docs/ @UniBazzar/leads @UniBazzar/architects
+
+# Shared libraries and contracts
+
+/libs/ @UniBazzar/architects
+/openapi/ @UniBazzar/backend-leads
+
+# Database schemas
+
+/sql/ @UniBazzar/backend-leads
+/dynamodb/ @UniBazzar/backend-leads
+
+# Go Services
+
+/services/auth-service/ @UniBazzar/go-team
+/services/listing-service/ @UniBazzar/go-team  
+/services/order-service/ @UniBazzar/go-team
+/services/notification-service/ @UniBazzar/go-team
+/services/analytics-service/ @UniBazzar/go-team
+
+# AI/ML Service
+
+/services/ai-service/ @UniBazzar/ai-team @UniBazzar/python-team
+
+# Frontend/Edge Services
+
+/services/chat-gateway/ @UniBazzar/frontend-team
+
+# CI/CD Templates
+
+/ci/ @UniBazzar/devops
