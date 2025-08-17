@@ -1,0 +1,94 @@
+%% Version: 1.0
+graph TD
+  meta["📊 UniBazzar: FAANG-Grade Microservices Architecture<br/>Version: 1.0 | Date: 2025-08-17 | Author: UniBazzar"]
+
+  subgraph Clients ["🖥️ Client Applications"]
+    C1[📱 React PWA / Mobile Client<br/>🌐 Web Dashboard<br/>📧 Admin Panel]
+  end
+
+  subgraph Cloud_Infrastructure["☁️ Cloud Infrastructure (AWS - Production Ready)"]
+    GW[🚪 API Gateway / Edge<br/>Load Balancer<br/>Rate Limiting]
+    I[📨 Message Broker<br/>RabbitMQ<br/>Topic Exchange]
+    
+    subgraph K8s["🐳 Container Layer (Docker / Kubernetes)"]
+      A[🔐 auth-service<br/>Go + JWT<br/>Postgres owner]
+      L[📋 listing-service<br/>Go + DDD<br/>DynamoDB owner]
+      O[🛒 order-service<br/>Go + Saga<br/>Outbox Pattern]
+      P[💳 payments-service<br/>Go + Chapa<br/>Webhook Handler]
+      AI[🤖 ai-service<br/>FastAPI + ML<br/>Embeddings & NLP]
+      N[📢 notifications-service<br/>Go + Push/Email<br/>Multi-channel]
+      CH[💬 chat-gateway<br/>Bun/TypeScript<br/>Real-time Edge]
+      SI[🔍 search-indexer<br/>Go Consumer<br/>OpenSearch Writer]
+    end
+
+    subgraph Data["🗄️ Data & Storage Tier"]
+      PG[(🐘 PostgreSQL<br/>RDS Managed<br/>ACID Transactions)]
+      DDB[(⚡ DynamoDB<br/>High Throughput<br/>NoSQL Documents)]
+      OS[(🔎 OpenSearch<br/>Full-text Search<br/>Analytics)]
+      S3[(📦 S3 Storage<br/>Media & Assets<br/>CDN Ready)]
+      VEC[(🧠 Vector DB<br/>FAISS/Milvus<br/>AI Embeddings)]
+      REDIS[(🚀 Redis Cache<br/>Session Store<br/>Rate Limiting)]
+    end
+
+    subgraph Observability ["📊 Observability Stack"]
+      JAEGER[🔍 Jaeger<br/>Distributed Tracing]
+      PROM[📈 Prometheus<br/>Metrics Collection]
+      GRAF[📊 Grafana<br/>Dashboards]
+      OTEL[🎯 OpenTelemetry<br/>Unified Observability]
+    end
+  end
+
+  %% Client connections
+  C1 -->|🔒 HTTPS / REST / gRPC| GW
+  GW --> A
+  GW --> L
+  GW --> O
+  GW --> P
+  GW --> AI
+  GW --> N
+  GW --> CH
+
+  %% Service to database connections
+  A --> |🔐 User Auth| PG
+  P --> |💰 Payments| PG
+  L --> |📋 Listings| DDB
+  O --> |🛒 Orders| DDB
+  L --> |📷 Media| S3
+  AI --> |🧠 Vectors| VEC
+  SI --> |🔍 Search Index| OS
+  CH --> |⚡ Sessions| REDIS
+
+  %% Event flows
+  P --> |💳 payment.completed| I
+  L --> |📋 listing.created| I
+  O --> |🛒 order.updated| I
+  I --> |📨 Events| N
+  I --> |🔍 Index Updates| SI
+  I --> |🤖 AI Processing| AI
+
+  %% Observability connections
+  A -.-> OTEL
+  L -.-> OTEL  
+  O -.-> OTEL
+  P -.-> OTEL
+  AI -.-> OTEL
+  N -.-> OTEL
+  CH -.-> OTEL
+  SI -.-> OTEL
+  
+  OTEL --> JAEGER
+  OTEL --> PROM
+  PROM --> GRAF
+
+  %% Styling
+  classDef services fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000;
+  classDef databases fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000;
+  classDef infrastructure fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px,color:#000;
+  classDef clients fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000;
+  classDef observability fill:#fce4ec,stroke:#880e4f,stroke-width:2px,color:#000;
+  
+  class A,L,O,P,AI,N,CH,SI services;
+  class PG,DDB,OS,S3,VEC,REDIS databases;
+  class GW,I infrastructure;
+  class C1 clients;
+  class JAEGER,PROM,GRAF,OTEL observability;
