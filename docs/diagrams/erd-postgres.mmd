@@ -1,0 +1,110 @@
+%% PostgreSQL ERD for core relational entities
+erDiagram
+    USERS {
+        UUID id PK "🔑 Primary Key"
+        VARCHAR email "📧 Unique email address"
+        VARCHAR password_hash "🔐 Bcrypt hash"
+        VARCHAR first_name "👤 First name"
+        VARCHAR last_name "👤 Last name"
+        VARCHAR phone "📱 Phone number"
+        TEXT[] roles "🎭 User roles array"
+        VARCHAR campus_id "🏫 University campus"
+        BOOLEAN email_verified "✅ Email verification"
+        BOOLEAN phone_verified "✅ Phone verification"
+        JSONB preferences "⚙️ User preferences"
+        TIMESTAMP created_at "📅 Account creation"
+        TIMESTAMP updated_at "🔄 Last update"
+        TIMESTAMP last_login_at "🔓 Last login time"
+    }
+    
+    PAYMENTS {
+        UUID id PK "🔑 Primary Key"
+        UUID order_id "📦 Associated order"
+        UUID buyer_id FK "👤 Buyer reference"
+        UUID seller_id FK "👤 Seller reference"
+        NUMERIC amount "💰 Payment amount (cents)"
+        VARCHAR currency "💱 Currency code (ETB/USD)"
+        VARCHAR status "📊 Payment status"
+        VARCHAR payment_method "💳 Payment method"
+        VARCHAR chapa_reference "🏦 Chapa transaction ID"
+        VARCHAR webhook_signature "🔐 Webhook verification"
+        JSONB metadata "📋 Additional payment data"
+        TIMESTAMP initiated_at "⏰ Payment start time"
+        TIMESTAMP completed_at "✅ Payment completion"
+        TIMESTAMP created_at "📅 Record creation"
+        TIMESTAMP updated_at "🔄 Last update"
+    }
+    
+    OUTBOX {
+        UUID id PK "🔑 Primary Key"
+        UUID aggregate_id "🎯 Source aggregate ID"
+        VARCHAR aggregate_type "📝 Aggregate type"
+        VARCHAR event_type "📨 Event type"
+        VARCHAR event_version "🔖 Event schema version"
+        JSONB payload "📦 Event payload"
+        BOOLEAN published "✅ Publication status"
+        INTEGER retry_count "🔄 Retry attempts"
+        TIMESTAMP created_at "📅 Event creation"
+        TIMESTAMP published_at "📤 Publication time"
+        TIMESTAMP next_retry_at "⏰ Next retry time"
+    }
+    
+    AUDIT_LOG {
+        UUID id PK "🔑 Primary Key"
+        UUID actor_id FK "👤 Who performed action"
+        VARCHAR action "🎬 Action performed"
+        VARCHAR target_type "🎯 Target entity type"
+        UUID target_id "🎯 Target entity ID"
+        JSONB before_data "📋 Data before change"
+        JSONB after_data "📋 Data after change"
+        VARCHAR ip_address "🌐 Client IP address"
+        VARCHAR user_agent "🖥️ Client user agent"
+        JSONB context "📝 Additional context"
+        TIMESTAMP created_at "📅 Action timestamp"
+    }
+    
+    PROCESSED_MESSAGES {
+        VARCHAR message_id PK "🔑 Message identifier"
+        VARCHAR event_type "📨 Type of processed event"
+        VARCHAR source_service "🏗️ Originating service"
+        JSONB processing_result "📊 Processing outcome"
+        TIMESTAMP processed_at "✅ Processing timestamp"
+        TIMESTAMP expires_at "⏰ Cleanup timestamp"
+    }
+    
+    USER_SESSIONS {
+        UUID id PK "🔑 Primary Key"
+        UUID user_id FK "👤 User reference"
+        VARCHAR session_token "🎫 Session identifier"
+        VARCHAR refresh_token "🔄 Refresh token"
+        VARCHAR device_info "📱 Device information"
+        VARCHAR ip_address "🌐 Client IP"
+        BOOLEAN is_active "✅ Session status"
+        TIMESTAMP expires_at "⏰ Session expiry"
+        TIMESTAMP created_at "📅 Session start"
+        TIMESTAMP last_used_at "🔄 Last activity"
+    }
+    
+    WEBHOOK_LOGS {
+        UUID id PK "🔑 Primary Key"
+        VARCHAR webhook_type "🎣 Webhook type"
+        VARCHAR source "🏪 Webhook source (chapa, etc)"
+        VARCHAR signature "🔐 Webhook signature"
+        JSONB headers "📋 HTTP headers"
+        JSONB payload "📦 Webhook payload"
+        VARCHAR processing_status "📊 Processing result"
+        VARCHAR error_message "❌ Error details"
+        INTEGER retry_count "🔄 Retry attempts"
+        TIMESTAMP received_at "📥 Webhook reception"
+        TIMESTAMP processed_at "✅ Processing completion"
+    }
+
+    %% Relationships with descriptive labels
+    USERS ||--o{ PAYMENTS : "👤 buyer/seller"
+    USERS ||--o{ AUDIT_LOG : "🎬 performs actions"
+    USERS ||--o{ USER_SESSIONS : "🔓 has sessions"
+    
+    %% Self-referencing and cross-references
+    AUDIT_LOG }o--|| USERS : "🎯 tracks user actions"
+    OUTBOX }o--|| USERS : "📨 user events"
+    WEBHOOK_LOGS }o--o{ PAYMENTS : "💳 payment webhooks"
