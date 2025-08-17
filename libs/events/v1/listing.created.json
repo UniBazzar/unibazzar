@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unibazzar.com/events/v1/listing.created",
+  "title": "Listing Created Event",
+  "description": "Event published when a new listing is created in the system",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+    "eventType": {
+      "type": "string",
+      "const": "listing.created",
+      "description": "Type of the event"
+    },
+    "eventVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the event schema"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    },
+    "source": {
+      "type": "string",
+      "const": "listing-service",
+      "description": "Service that published the event"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Correlation ID for tracing related events"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the event that caused this event"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "listingId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the listing"
+        },
+        "sellerId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the user who created the listing"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Title of the listing"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Detailed description of the listing"
+        },
+        "price": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Price of the item in cents"
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["USD", "CAD", "EUR", "GBP"],
+          "description": "Currency code"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "textbooks",
+            "electronics",
+            "furniture",
+            "clothing",
+            "sports",
+            "services",
+            "other"
+          ],
+          "description": "Category of the listing"
+        },
+        "campusId": {
+          "type": "string",
+          "description": "Campus where the item is located"
+        },
+        "condition": {
+          "type": "string",
+          "enum": ["new", "like_new", "good", "fair", "poor"],
+          "description": "Condition of the item"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the image"
+              },
+              "altText": {
+                "type": "string",
+                "description": "Alt text for accessibility"
+              },
+              "order": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Display order of the image"
+              }
+            },
+            "required": ["url", "order"],
+            "additionalProperties": false
+          },
+          "maxItems": 10,
+          "description": "Images associated with the listing"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "maxItems": 20,
+          "description": "Tags for search and categorization"
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "building": {
+              "type": "string",
+              "description": "Building name or address"
+            },
+            "room": {
+              "type": "string",
+              "description": "Room number or specific location"
+            },
+            "coordinates": {
+              "type": "object",
+              "properties": {
+                "latitude": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "longitude": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                }
+              },
+              "required": ["latitude", "longitude"],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "availability": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["available", "pending", "sold", "unavailable"],
+              "description": "Current availability status"
+            },
+            "availableFrom": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the item becomes available"
+            },
+            "availableUntil": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the listing expires"
+            }
+          },
+          "required": ["status"],
+          "additionalProperties": false
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the listing was created"
+        }
+      },
+      "required": [
+        "listingId",
+        "sellerId",
+        "title",
+        "price",
+        "currency",
+        "category",
+        "campusId",
+        "createdAt"
+      ],
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the user who triggered this event"
+        },
+        "userAgent": {
+          "type": "string",
+          "description": "User agent string from the request"
+        },
+        "ipAddress": {
+          "type": "string",
+          "format": "ipv4",
+          "description": "IP address of the request"
+        },
+        "traceId": {
+          "type": "string",
+          "description": "Distributed tracing ID"
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Request ID for debugging"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "timestamp",
+    "source",
+    "correlationId",
+    "data"
+  ],
+  "additionalProperties": false
+}

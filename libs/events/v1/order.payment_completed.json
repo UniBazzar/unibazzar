@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unibazzar.com/events/v1/order.payment_completed",
+  "title": "Order Payment Completed Event",
+  "description": "Event published when payment for an order has been successfully completed",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+    "eventType": {
+      "type": "string",
+      "const": "order.payment_completed",
+      "description": "Type of the event"
+    },
+    "eventVersion": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the event schema"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event occurred"
+    },
+    "source": {
+      "type": "string",
+      "const": "order-service",
+      "description": "Service that published the event"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Correlation ID for tracing related events"
+    },
+    "causationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the event that caused this event"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the order"
+        },
+        "paymentId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the payment"
+        },
+        "buyerId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the buyer"
+        },
+        "sellerId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the seller"
+        },
+        "listingId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the listing being purchased"
+        },
+        "amount": {
+          "type": "object",
+          "properties": {
+            "subtotal": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Subtotal amount in cents"
+            },
+            "tax": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Tax amount in cents"
+            },
+            "fees": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Platform fees in cents"
+            },
+            "total": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total amount paid in cents"
+            },
+            "currency": {
+              "type": "string",
+              "enum": ["USD", "CAD", "EUR", "GBP"],
+              "description": "Currency code"
+            }
+          },
+          "required": ["subtotal", "tax", "fees", "total", "currency"],
+          "additionalProperties": false
+        },
+        "paymentMethod": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "credit_card",
+                "debit_card",
+                "paypal",
+                "stripe",
+                "campus_card"
+              ],
+              "description": "Type of payment method"
+            },
+            "provider": {
+              "type": "string",
+              "enum": ["stripe", "paypal", "square", "campus_payment"],
+              "description": "Payment processor"
+            },
+            "last4": {
+              "type": "string",
+              "pattern": "^[0-9]{4}$",
+              "description": "Last 4 digits of payment method"
+            },
+            "brand": {
+              "type": "string",
+              "description": "Card brand (e.g., Visa, MasterCard)"
+            }
+          },
+          "required": ["type", "provider"],
+          "additionalProperties": false
+        },
+        "paymentDetails": {
+          "type": "object",
+          "properties": {
+            "transactionId": {
+              "type": "string",
+              "description": "External payment processor transaction ID"
+            },
+            "authorizationCode": {
+              "type": "string",
+              "description": "Payment authorization code"
+            },
+            "processingFee": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Processing fee charged by payment provider"
+            },
+            "netAmount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Net amount after processing fees"
+            },
+            "capturedAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the payment was captured"
+            }
+          },
+          "required": ["transactionId", "capturedAt"],
+          "additionalProperties": false
+        },
+        "orderDetails": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "payment_completed",
+                "processing",
+                "shipped",
+                "delivered"
+              ],
+              "description": "Current order status"
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "listingId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "unitPrice": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "totalPrice": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "listingId",
+                  "title",
+                  "quantity",
+                  "unitPrice",
+                  "totalPrice"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "shippingAddress": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "address1": {
+                  "type": "string"
+                },
+                "address2": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "postalCode": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                },
+                "campus": {
+                  "type": "string"
+                },
+                "building": {
+                  "type": "string"
+                },
+                "room": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "address1",
+                "city",
+                "state",
+                "postalCode",
+                "country"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": ["status", "items"],
+          "additionalProperties": false
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the payment was completed"
+        },
+        "expectedDelivery": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expected delivery date/time"
+        }
+      },
+      "required": [
+        "orderId",
+        "paymentId",
+        "buyerId",
+        "sellerId",
+        "listingId",
+        "amount",
+        "paymentMethod",
+        "paymentDetails",
+        "orderDetails",
+        "completedAt"
+      ],
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "ID of the user who triggered this event"
+        },
+        "traceId": {
+          "type": "string",
+          "description": "Distributed tracing ID"
+        },
+        "sagaId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Saga orchestration ID"
+        },
+        "webhookId": {
+          "type": "string",
+          "description": "Payment provider webhook ID"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "timestamp",
+    "source",
+    "correlationId",
+    "data"
+  ],
+  "additionalProperties": false
+}
