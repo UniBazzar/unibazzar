@@ -8,7 +8,8 @@ DB_HOST=${DB_HOST:-localhost}
 DB_PORT=${DB_PORT:-5432}
 DB_NAME=${DB_NAME:-unibazzar}
 DB_USER=${DB_USER:-postgres}
-DB_PASSWORD=${DB_PASSWORD:-password}
+# Do not set a real default password. Leave empty so callers must supply via env.
+DB_PASSWORD=${DB_PASSWORD:-""}
 MIGRATIONS_DIR=${MIGRATIONS_DIR:-"./migrations"}
 
 # Colors for output
