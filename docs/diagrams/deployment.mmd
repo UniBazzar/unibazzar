@@ -1,0 +1,165 @@
+%% File: docs/diagrams/deployment.mmd
+%% Deployment overview: local docker-compose vs cloud (AWS)
+flowchart TB
+    subgraph DevEnv["💻 Development Environment"]
+        DEV_MACHINE[👨‍💻 Developer Machine<br/>Local Development]
+        
+        subgraph DockerCompose["🐳 Docker Compose Stack"]
+            DC[📋 docker-compose.yml<br/>One-command startup]
+            
+            subgraph LocalServices["🔧 Local Services"]
+                PG_LOCAL[🐘 PostgreSQL 15<br/>Port: 5432<br/>Volume: ./data/postgres]
+                REDIS_LOCAL[🚀 Redis 7<br/>Port: 6379<br/>Volume: ./data/redis]
+                RABBIT_LOCAL[🐰 RabbitMQ 3.12<br/>Ports: 5672, 15672<br/>Management UI enabled]
+                JAEGER_LOCAL[🔍 Jaeger<br/>Port: 16686<br/>Local tracing]
+            end
+            
+            subgraph AppServices["⚡ Application Services"]
+                AUTH_LOCAL[🔐 auth-service<br/>Port: 8080]
+                LISTING_LOCAL[📋 listing-service<br/>Port: 8081]  
+                ORDER_LOCAL[🛒 order-service<br/>Port: 8082]
+                AI_LOCAL[🤖 ai-service<br/>Port: 8000]
+                CHAT_LOCAL[💬 chat-gateway<br/>Port: 3000]
+            end
+        end
+    end
+
+    subgraph CloudProduction["☁️ AWS Production Environment"]
+        subgraph Networking["🌐 Networking & Edge"]
+            CF[🌍 CloudFront CDN<br/>Global edge locations<br/>Static asset caching]
+            ALB[⚖️ Application Load Balancer<br/>SSL termination<br/>Health checks & routing]
+            APIGW[🚪 API Gateway<br/>Rate limiting<br/>Authentication<br/>Request/response transformation]
+        end
+        
+        subgraph Compute["🏗️ Compute Layer"]
+            ECS[📦 ECS Fargate<br/>Container orchestration<br/>Auto-scaling<br/>Zero-ops infrastructure]
+            
+            subgraph TaskServices["⚡ ECS Services"]
+                AUTH_CLOUD[🔐 auth-service<br/>Min: 2 tasks<br/>Max: 10 tasks<br/>CPU: 256, Memory: 512MB]
+                LISTING_CLOUD[📋 listing-service<br/>Min: 2 tasks<br/>Max: 20 tasks<br/>CPU: 512, Memory: 1GB]
+                ORDER_CLOUD[🛒 order-service<br/>Min: 2 tasks<br/>Max: 15 tasks<br/>CPU: 512, Memory: 1GB]
+                AI_CLOUD[🤖 ai-service<br/>Min: 1 task<br/>Max: 5 tasks<br/>CPU: 1024, Memory: 2GB<br/>GPU: Optional]
+                CHAT_CLOUD[💬 chat-gateway<br/>Min: 2 tasks<br/>Max: 8 tasks<br/>CPU: 256, Memory: 512MB]
+            end
+        end
+        
+        subgraph ManagedServices["🛠️ AWS Managed Services"]
+            RDS[🐘 RDS PostgreSQL<br/>Multi-AZ deployment<br/>Automated backups<br/>Read replicas<br/>Version: 15.x]
+            
+            DYNAMODB[⚡ DynamoDB<br/>On-demand billing<br/>Global tables<br/>Point-in-time recovery<br/>Auto-scaling]
+            
+            ELASTICACHE[🚀 ElastiCache Redis<br/>Cluster mode enabled<br/>Automatic failover<br/>In-transit encryption]
+            
+            S3[📦 S3<br/>Multiple buckets:<br/>• Media assets<br/>• Application logs<br/>• Backup archives]
+            
+            MSK[📨 Amazon MSK<br/>Managed Kafka/RabbitMQ<br/>Multi-AZ<br/>Auto-scaling<br/>Monitoring integrated]
+            
+            OPENSEARCH[🔍 OpenSearch Service<br/>Managed Elasticsearch<br/>Auto-scaling<br/>Built-in monitoring<br/>Security & encryption]
+        end
+        
+        subgraph Observability["📊 Observability & Monitoring"]
+            XRAY[🔍 AWS X-Ray<br/>Distributed tracing<br/>Service maps<br/>Performance insights]
+            
+            CLOUDWATCH[📈 CloudWatch<br/>Metrics & logs<br/>Custom dashboards<br/>Automated alerts]
+            
+            GRAFANA_CLOUD[📊 Grafana Cloud<br/>Advanced dashboards<br/>Cross-service metrics<br/>Team collaboration]
+        end
+        
+        subgraph Security["🔒 Security & Compliance"]
+            WAF[🛡️ AWS WAF<br/>Web application firewall<br/>DDoS protection<br/>Bot detection]
+            
+            IAM[👤 IAM Roles & Policies<br/>Service-to-service auth<br/>Principle of least privilege<br/>Cross-account access]
+            
+            SECRETS[🔐 AWS Secrets Manager<br/>Database credentials<br/>API keys<br/>Certificate management<br/>Automatic rotation]
+        end
+    end
+
+    subgraph CI_CD["🔄 CI/CD Pipeline"]
+        GITHUB[📚 GitHub Repository<br/>Source code<br/>Branch protection<br/>Pull request reviews]
+        
+        ACTIONS[⚙️ GitHub Actions<br/>Automated testing<br/>Docker image builds<br/>Multi-environment deploys]
+        
+        ECR[📦 Amazon ECR<br/>Container registry<br/>Image vulnerability scanning<br/>Lifecycle policies]
+        
+        TERRAFORM[🏗️ Terraform<br/>Infrastructure as Code<br/>State management<br/>Multi-environment configs]
+    end
+
+    %% Development flow
+    DEV_MACHINE --> DC
+    DC --> PG_LOCAL
+    DC --> REDIS_LOCAL
+    DC --> RABBIT_LOCAL
+    DC --> JAEGER_LOCAL
+    DC --> AUTH_LOCAL
+    DC --> LISTING_LOCAL
+    DC --> ORDER_LOCAL
+    DC --> AI_LOCAL
+    DC --> CHAT_LOCAL
+
+    %% CI/CD flow
+    GITHUB --> ACTIONS
+    ACTIONS --> ECR
+    ECR --> ECS
+    TERRAFORM --> ECS
+
+    %% Production traffic flow
+    CF --> ALB
+    ALB --> APIGW
+    APIGW --> AUTH_CLOUD
+    APIGW --> LISTING_CLOUD
+    APIGW --> ORDER_CLOUD
+    APIGW --> AI_CLOUD
+    APIGW --> CHAT_CLOUD
+
+    %% Service to managed services
+    AUTH_CLOUD --> RDS
+    ORDER_CLOUD --> RDS
+    LISTING_CLOUD --> DYNAMODB
+    ORDER_CLOUD --> DYNAMODB
+    AI_CLOUD --> OPENSEARCH
+    CHAT_CLOUD --> ELASTICACHE
+    
+    AUTH_CLOUD --> MSK
+    LISTING_CLOUD --> MSK
+    ORDER_CLOUD --> MSK
+    AI_CLOUD --> MSK
+    
+    LISTING_CLOUD --> S3
+    AI_CLOUD --> S3
+
+    %% Observability connections
+    AUTH_CLOUD -.-> XRAY
+    LISTING_CLOUD -.-> XRAY
+    ORDER_CLOUD -.-> XRAY
+    AI_CLOUD -.-> XRAY
+    CHAT_CLOUD -.-> XRAY
+    
+    XRAY --> CLOUDWATCH
+    CLOUDWATCH --> GRAFANA_CLOUD
+
+    %% Security
+    WAF --> ALB
+    SECRETS --> AUTH_CLOUD
+    SECRETS --> LISTING_CLOUD
+    SECRETS --> ORDER_CLOUD
+    IAM --> AUTH_CLOUD
+    IAM --> LISTING_CLOUD
+    IAM --> ORDER_CLOUD
+
+    %% Environment comparison
+    subgraph Comparison["🔄 Environment Mapping"]
+        MAP["📋 Service Mapping:<br/><br/>🏠 Local → ☁️ Cloud<br/>• PostgreSQL → RDS<br/>• Redis → ElastiCache<br/>• RabbitMQ → Amazon MSK<br/>• Jaeger → X-Ray<br/>• Docker Compose → ECS Fargate<br/><br/>🎯 Benefits:<br/>• Identical application code<br/>• Environment parity<br/>• Easy debugging<br/>• Cost-effective development"]
+    end
+
+    %% Styling
+    classDef local fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000;
+    classDef cloud fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000;
+    classDef managed fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000;
+    classDef security fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#000;
+    classDef cicd fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000;
+    
+    class PG_LOCAL,REDIS_LOCAL,RABBIT_LOCAL,JAEGER_LOCAL,AUTH_LOCAL,LISTING_LOCAL,ORDER_LOCAL,AI_LOCAL,CHAT_LOCAL,DC local;
+    class CF,ALB,APIGW,ECS,AUTH_CLOUD,LISTING_CLOUD,ORDER_CLOUD,AI_CLOUD,CHAT_CLOUD,XRAY,CLOUDWATCH,GRAFANA_CLOUD cloud;
+    class RDS,DYNAMODB,ELASTICACHE,S3,MSK,OPENSEARCH managed;
+    class WAF,IAM,SECRETS security;
+    class GITHUB,ACTIONS,ECR,TERRAFORM cicd;
