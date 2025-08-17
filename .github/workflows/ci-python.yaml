@@ -1,0 +1,58 @@
+name: CI - Python Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "services/ai-service/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "services/ai-service/**"
+
+jobs:
+  test-python-services:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        working-directory: services/ai-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest black flake8 mypy
+
+      - name: Lint with flake8
+        working-directory: services/ai-service
+        run: flake8 app/ tests/
+
+      - name: Format check with black
+        working-directory: services/ai-service
+        run: black --check app/ tests/
+
+      - name: Type check with mypy
+        working-directory: services/ai-service
+        run: mypy app/
+
+      - name: Test with pytest
+        working-directory: services/ai-service
+        run: pytest tests/ -v
+
+      - name: Build Docker image
+        working-directory: services/ai-service
+        run: docker build -t unibazzar/ai-service:test .

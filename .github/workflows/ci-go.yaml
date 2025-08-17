@@ -1,0 +1,60 @@
+name: CI - Go Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "services/auth-service/**"
+      - "services/listing-service/**"
+      - "services/order-service/**"
+      - "services/notification-service/**"
+      - "services/analytics-service/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "services/auth-service/**"
+      - "services/listing-service/**"
+      - "services/order-service/**"
+      - "services/notification-service/**"
+      - "services/analytics-service/**"
+
+jobs:
+  test-go-services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          [
+            auth-service,
+            listing-service,
+            order-service,
+            notification-service,
+            analytics-service,
+          ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Run tests
+        working-directory: services/${{ matrix.service }}
+        run: |
+          make lint
+          make test
+          make build
+
+      - name: Build Docker image
+        working-directory: services/${{ matrix.service }}
+        run: make docker
